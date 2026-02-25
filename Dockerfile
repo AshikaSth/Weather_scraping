@@ -15,7 +15,7 @@ ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 # 2. Create the user that was missing
 RUN adduser --disabled-password --gecos "" appuser
 
-WORKDIR /app
+WORKDIR /
 
 # 3. Install Python dependencies
 RUN --mount=type=cache,target=/root/.cache/pip \
