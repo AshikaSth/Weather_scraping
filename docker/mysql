@@ -1,0 +1,5 @@
+#!/bin/sh
+cd "$(dirname "$0")/.."
+
+echo "Connecting to MySQL..."
+docker exec -it weather_scraping-db-1 mysql -u weather_user -pweather weather_db

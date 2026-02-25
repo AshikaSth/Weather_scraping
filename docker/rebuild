@@ -1,0 +1,6 @@
+#!/bin/sh
+cd "$(dirname "$0")/.."
+echo "Rebuilding containers..."
+docker compose down
+docker compose up --build -d
+echo "Done. Use docker/logs to check status."

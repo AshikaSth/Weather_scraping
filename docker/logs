@@ -1,0 +1,18 @@
+#!/bin/sh
+cd "$(dirname "$0")/.."
+
+SERVICE=${1:-""}
+
+case "$SERVICE" in
+  worker) SERVICE="celery_worker" ;;
+  beat)   SERVICE="celery_beat" ;;
+  app)    SERVICE="app" ;;
+  db)     SERVICE="db" ;;
+  redis)  SERVICE="redis" ;;
+esac
+
+if [ -z "$SERVICE" ]; then
+    docker compose logs -f
+else
+    docker compose logs -f "$SERVICE"
+fi
