@@ -5,7 +5,7 @@ from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import time
 from app.config import USER_AGENT, HEADLESS, IMPLICIT_WAIT, PAGE_SLEEP, DEFAULT_CITY_URL
-from datetime import datetime
+from datetime import datetime, timezone
 
 def parse_float(value):
     """Strip units and symbols then convert to float or return None."""
@@ -19,7 +19,7 @@ def parse_float(value):
 
 def parse_wind(value):
     """Parse '12 km/h NE' into (12.0, 'NE')"""
-    if not value or value == None:
+    if not value:
         return None, None
     speed_match = re.search(r'[\d.]+', value)
     speed = float(speed_match.group()) if speed_match else None
@@ -50,13 +50,12 @@ def scrape_accuweather(city_url=DEFAULT_CITY_URL):
     try:
         print(f"Loading: {city_url}")
         driver.get(city_url)
-        time.sleep(PAGE_SLEEP) #let JS fully render
+        time.sleep(PAGE_SLEEP) 
 
         soup = BeautifulSoup(driver.page_source.encode('utf-8'), "html.parser")
-
         weather_data = {
             "city": "Kathmandu",
-            "scraped_at": datetime.now(),
+            "scraped_at": datetime.now(timezone.utc),
             "temperature": None,
             "real_feel": None,
             "weather_condition": None,
@@ -65,6 +64,10 @@ def scrape_accuweather(city_url=DEFAULT_CITY_URL):
             "wind_direction": None,
             "visibility": None,
             "max_uv_index": None,
+            "dew_point": None,
+            "pressure": None,
+            "cloud_cover": None,
+            "cloud_ceiling":None,
         }
 
         # Current temp         
@@ -76,6 +79,7 @@ def scrape_accuweather(city_url=DEFAULT_CITY_URL):
         if cond_elem: weather_data['weather_condition'] = cond_elem.text.strip()
 
         #feels like temp
+        realfeel = None
         extra_div = soup.find('div', class_ = 'current-weather-extra')
         if extra_div:
             full_text = extra_div.get_text(strip=True)
@@ -84,28 +88,32 @@ def scrape_accuweather(city_url=DEFAULT_CITY_URL):
                 realfeel = match.group(1)
         if realfeel: weather_data['real_feel'] = parse_float(realfeel)
 
-        details_container = soup.find('div', class_=['current-weather-details', 'no-realfeel-phrase']) 
-        if details_container:
-            items = details_container.find_all('div', class_=['detail-item'])
-
+        items= soup.select('.current-weather-details .detail-item')
         for item in items:
             divs = item.find_all('div', recursive=False)
-            if len(divs) < 2:
-                    continue
-            label = divs[0].get_text(strip=True)
-            value = divs[1].get_text(strip=True)
 
-            # Logic-based mapping to your SQLAlchemy columns
-            if "Humidity" in label:
-                weather_data['humidity'] = parse_float(value)
-            elif "Wind" in label and "Gusts" not in label:
-                speed, direction = parse_wind(value)
-                weather_data['wind_speed'] = speed
-                weather_data['wind_direction'] = direction
-            elif "Visibility" in label:
-                weather_data['visibility'] = parse_float(value)
-            elif "UV" in label:
-                weather_data['max_uv_index'] = parse_float(value)
+            if len(divs) >= 2:
+                # Assign labels and values immediately to avoid UnboundLocalError
+                label = divs[0].get_text(strip=True)
+                value = divs[1].get_text(strip=True)
+                if "Humidity" in label:
+                    weather_data['humidity'] = parse_float(value)
+                elif "Wind" in label and "Gusts" not in label:
+                    speed, direction = parse_wind(value)
+                    weather_data['wind_speed'] = speed
+                    weather_data['wind_direction'] = direction
+                elif "Visibility" in label:
+                    weather_data['visibility'] = parse_float(value)
+                elif "UV" in label:
+                    weather_data['max_uv_index'] = parse_float(value)
+                elif "Dew Point" in label:
+                    weather_data['dew_point'] = parse_float(value)
+                elif "Pressure" in label:
+                    weather_data['pressure'] = parse_float(value)
+                elif "Cloud Cover" in label:
+                    weather_data['cloud_cover'] = parse_float(value)
+                elif "Cloud Ceiling" in label:
+                    weather_data['cloud_ceiling'] = parse_float(value)
 
         return weather_data
     except Exception as e:
@@ -113,3 +121,4 @@ def scrape_accuweather(city_url=DEFAULT_CITY_URL):
         return None
     finally: 
         driver.quit()
+
