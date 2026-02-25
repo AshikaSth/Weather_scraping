@@ -1,7 +1,7 @@
 import os
 from celery import Celery
 from celery.schedules import crontab
-
+from utils.common import print_weather_report
 celery_app= Celery('weather',
                     broker = os.getenv('REDIS_URL', 'redis://redis:6379/0'),
                     backend = os.getenv('REDIS_URL', 'redis://redis:6379/0'))
@@ -13,14 +13,16 @@ celery_app.conf.beat_schedule = {
     }
 }
 
-@celery_app.task
-def scrape_weather():
+@celery_app.task(bind=True)
+def scrape_weather(self):
     from app.create import scrape_accuweather
-    from app.main import save_to_db
-    print("Starting weather scrape task...")
-    data= scrape_accuweather()
+    from app.database import save_to_db
+    task_id = self.request.id
+    print(f"Starting weather scrape task {task_id}...")
+    data = scrape_accuweather()
     if data:
-        print("Scraped data:", data)
+        data['task_id'] = task_id
+        print_weather_report(data)
         save_to_db(data)
     else:
         print("Failed to scrape weather data.")

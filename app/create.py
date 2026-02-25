@@ -6,27 +6,8 @@ from bs4 import BeautifulSoup
 import time
 from app.config import USER_AGENT, HEADLESS, IMPLICIT_WAIT, PAGE_SLEEP, DEFAULT_CITY_URL
 from datetime import datetime, timezone
+from utils.parse import parse_float, parse_wind
 
-def parse_float(value):
-    """Strip units and symbols then convert to float or return None."""
-    if not value or value == 'N/A':
-        return None
-    cleaned = re.sub(r'[^\d.-]', '', value)
-    try:
-        return float(cleaned)
-    except ValueError:
-        return None
-
-def parse_wind(value):
-    """Parse '12 km/h NE' into (12.0, 'NE')"""
-    if not value:
-        return None, None
-    speed_match = re.search(r'[\d.]+', value)
-    speed = float(speed_match.group()) if speed_match else None
-
-    parts = value.split()
-    direction = parts[0] if parts[0].isalpha() else None
-    return speed, direction
 
 def get_driver():
     options = Options()
