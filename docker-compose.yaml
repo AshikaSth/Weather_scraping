@@ -9,8 +9,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DB}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    # ports:
-    #   - "3330:3306"
+    ports:
+      - "3330:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -22,20 +22,10 @@ services:
     # ports:
     #   - "6380:6379"
   
-  app:
-    build: .
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    env_file:
-      - .env
-    command: tail -f /dev/null  
-    restart: always
-  
   celery_worker:
     build: .
+    volumes:
+    - .:/app
     command: celery -A app.tasks worker --loglevel=info
     depends_on:
       db:
@@ -47,7 +37,7 @@ services:
     restart: always
 
   celery_beat:
-    build: .
+    build: .                        
     command: celery -A app.tasks beat --loglevel=info
     depends_on:
       redis:
@@ -56,5 +46,18 @@ services:
       - .env
     restart: always
 
+  web_dashboard:
+    build: .
+    working_dir: /app
+    command: python3 -m app.main
+    ports:
+      - "2222:5000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
 volumes:
   mysql_data:
