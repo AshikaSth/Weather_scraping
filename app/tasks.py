@@ -7,19 +7,21 @@ celery_app= Celery('weather',
                     backend = os.getenv('REDIS_URL', 'redis://redis:6379/0'))
 
 celery_app.conf.beat_schedule = {
-    'scrape-every-6-hour': {
-        'task': 'app.tasks.scrape_weather',
+    'scrape-every-hour': {
+        'task': 'tasks.scrape_weather',
         'schedule': crontab(minute=0, hour='*')
     }
 }
 
-@celery_app.task
-def scrape_weather():
-    from app.create import scrape_accuweather
-    from app.main import save_to_db
-    print("Starting weather scrape task...")
-    data= scrape_accuweather()
+@celery_app.task(bind=True)
+def scrape_weather(self):
+    from create import scrape_accuweather
+    from database import save_to_db
+    task_id = self.request.id
+    print(f"Starting weather scrape task {task_id}...")
+    data = scrape_accuweather()
     if data:
+        data['task_id'] = task_id
         print("Scraped data:", data)
         save_to_db(data)
     else:
