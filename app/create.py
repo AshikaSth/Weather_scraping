@@ -4,10 +4,9 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import time
-from app.config import USER_AGENT, HEADLESS, IMPLICIT_WAIT, PAGE_SLEEP, DEFAULT_CITY_URL
+from config import USER_AGENT, HEADLESS, IMPLICIT_WAIT, PAGE_SLEEP, DEFAULT_CITY_URL
 from datetime import datetime, timezone
 from utils.parse import parse_float, parse_wind
-
 
 def get_driver():
     options = Options()
@@ -49,6 +48,7 @@ def scrape_accuweather(city_url=DEFAULT_CITY_URL):
             "pressure": None,
             "cloud_cover": None,
             "cloud_ceiling":None,
+            "precipitation": None
         }
 
         # Current temp         
@@ -95,6 +95,8 @@ def scrape_accuweather(city_url=DEFAULT_CITY_URL):
                     weather_data['cloud_cover'] = parse_float(value)
                 elif "Cloud Ceiling" in label:
                     weather_data['cloud_ceiling'] = parse_float(value)
+                elif "Precipitation" in label:
+                    weather_data['precipitation'] = parse_float(value)
 
         return weather_data
     except Exception as e:

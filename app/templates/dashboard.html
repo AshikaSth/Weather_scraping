@@ -10,23 +10,37 @@
         <table class="table table-striped table-hover shadow-sm bg-white">
             <thead class="table-dark">
                 <tr>
-                    <th>Time (UTC)</th>
+                   <th>Time (NPT)</th>  
                     <th>Temp</th>
                     <th>Feels Like</th>
                     <th>Condition</th>
                     <th>Humidity</th>
                     <th>Pressure</th>
+                    <th>Wind </th>
+                    <th>Visibility</th>
+                    <th>Maximum UV Index</th>
+                    <th>Dew Point</th>
+                    <th>Cloud Cover</th>
+                    <th>Cloud Ceiling</th>
+                    <th>Precipitation</th>
                 </tr>
             </thead>
             <tbody>
                 {% for record in weather_records %}
                 <tr>
-                    <td>{{ record.scraped_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ record.scraped_at.strftime('%Y-%m-%d %H:%M NPT') }}</td>
                     <td>{{ record.temperature }}°C</td>
                     <td>{{ record.real_feel }}°C</td>
                     <td>{{ record.weather_condition }}</td>
                     <td>{{ record.humidity }}%</td>
                     <td>{{ record.pressure }} mb</td>
+                    <td>{{ record.wind_speed }} km/h {{ record.wind_direction }}</td>
+                    <td>{{ record.visibility }} km</td>
+                    <td>{{ record.max_uv_index }}</td>
+                    <td>{{ record.dew_point }}°C</td>
+                    <td>{{ record.cloud_cover }}%</td>
+                    <td>{{ record.cloud_ceiling }} m</td>
+                    <td>{{ record.precipitation }} mm</td>
                 </tr>
                 {% endfor %}
             </tbody>

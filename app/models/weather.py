@@ -22,3 +22,4 @@ class WeatherRecord(Base):
     cloud_cover       = Column(Float)
     cloud_ceiling     = Column(Float)
     task_id           = Column(String(36))
+    precipitation     = Column(Float)

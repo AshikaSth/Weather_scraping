@@ -1,7 +1,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models.weather import Base, WeatherRecord
+from models.weather import Base, WeatherRecord
 
 
 def get_db_session():

@@ -1,4 +1,36 @@
+
+x-shared: &shared
+  image: weather_app_base:latest
+  build: .
+  working_dir: /app
+  volumes:
+    - ./app:/app
+  env_file:
+    - .env
+  environment:
+    - PYTHONPATH=/app 
+    - TZ=Asia/Kathmandu 
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+
 services:
+  celery_worker:
+    <<: *shared
+    command: celery -A tasks worker --loglevel=info
+
+  celery_beat:
+    <<: *shared
+    command: celery -A tasks beat --loglevel=info
+
+  web_dashboard:
+    <<: *shared
+    command: python3 main.py
+    ports:
+      - "2222:5000"
+
   db:
     image: mysql:8.0
     restart: always
@@ -22,42 +54,5 @@ services:
     # ports:
     #   - "6380:6379"
   
-  celery_worker:
-    build: .
-    volumes:
-    - .:/app
-    command: celery -A app.tasks worker --loglevel=info
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    env_file:
-      - .env
-    restart: always
-
-  celery_beat:
-    build: .                        
-    command: celery -A app.tasks beat --loglevel=info
-    depends_on:
-      redis:
-        condition: service_started
-    env_file:
-      - .env
-    restart: always
-
-  web_dashboard:
-    build: .
-    working_dir: /app
-    command: python3 -m app.main
-    ports:
-      - "2222:5000"
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    depends_on:
-      db:
-        condition: service_healthy
 volumes:
   mysql_data:

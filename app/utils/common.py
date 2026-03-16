@@ -18,4 +18,6 @@ def print_weather_report(data):
     print(f"Cloud Cover:   {data.get('cloud_cover', 'N/A')}%")
     print(f"Cloud Ceiling: {data.get('cloud_ceiling', 'N/A')} m")
     print(f"Max UV Index:  {data.get('max_uv_index', 'N/A')}")
+    print(f"Dew Point:     {data.get('dew_point', 'N/A')}°C")
+    print(f"Precipitation: {data.get('precipitation', 'N/A')} mm")
     print("=================================\n")

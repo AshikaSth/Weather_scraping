@@ -17,6 +17,6 @@ def parse_wind(value):
     speed_match = re.search(r'[\d.]+', value)
     speed = float(speed_match.group()) if speed_match else None
 
-    parts = value.split()
-    direction = parts[0] if parts[0].isalpha() else None
+    parts = value.strip().split()
+    direction = next((p for p in reversed(parts) if p.isalpha()), None)
     return speed, direction
