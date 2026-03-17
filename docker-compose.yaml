@@ -3,8 +3,6 @@ x-shared: &shared
   image: weather_app_base:latest
   build: .
   working_dir: /app
-  volumes:
-    - ./app:/app
   env_file:
     - .env
   environment:
@@ -20,16 +18,21 @@ services:
   celery_worker:
     <<: *shared
     command: celery -A tasks worker --loglevel=info
-
+    volumes:
+      - .:/app
   celery_beat:
     <<: *shared
     command: celery -A tasks beat --loglevel=info
+    volumes:
+      - .:/app
 
   web_dashboard:
     <<: *shared
     command: python3 main.py
     ports:
       - "2222:5000"
+    volumes:
+      - .:/app
 
   db:
     image: mysql:8.0
@@ -51,8 +54,11 @@ services:
   redis:
     image: redis:alpine
     restart: always
-    # ports:
-    #   - "6380:6379"
   
 volumes:
   mysql_data:
+
+networks:
+  app_network:
+
+
