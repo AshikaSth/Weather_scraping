@@ -1,7 +1,6 @@
 #!/bin/sh
 cd "$(dirname "$0")/.."
 
-# Usage: docker/task → manually triggers scrape_weather task
 echo "Triggering scrape_weather task..."
-docker exec weather_scraping-celery_worker-1 celery -A tasks call tasks.scrape_weather
-echo "Check logs with: docker/logs worker"
+docker compose exec celery_worker celery -A tasks call tasks.scrape_weather
+echo "Check logs with: ./docker/logs celery_worker"
