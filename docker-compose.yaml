@@ -54,8 +54,11 @@ services:
   redis:
     image: redis:alpine
     restart: always
-    # ports:
-    #   - "6380:6379"
   
 volumes:
   mysql_data:
+
+networks:
+  app_network:
+
+
