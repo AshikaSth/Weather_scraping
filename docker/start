@@ -1,15 +1,24 @@
 #!/bin/sh
+set -e  # Exit immediately if any command fails
 cd "$(dirname "$0")/.."
 
 echo "Starting containers..."
 docker compose up -d
 
-echo "Waiting for DB to be healthy..."
-until [ "$(docker inspect -f '{{.State.Health.Status}}' weather_scraping-db-1)" = "healthy" ]; do
-    printf "."
+echo "Waiting for DB to become healthy (max 60s)..."
+STATUS=""
+# Wait up to 30s for the DB container to become healthy, checking status every 1s
+for i in $(seq 1 60); do
+    STATUS=$(docker compose exec -T db sh -c 'echo $(( $(mysqladmin ping -h localhost 2>/dev/null) )) || echo "unknown"' 2>/dev/null || echo "unknown")
+    # Check using docker inspect health if you prefer
+    STATUS=$(docker compose ps -q db | xargs docker inspect -f '{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+    [ "$STATUS" = "healthy" ] && break
     sleep 1
 done
+# Exit with error if DB is not healthy; otherwise, confirm containers are ready
+if [ "$STATUS" != "healthy" ]; then
+    echo "ERROR: DB did not become healthy after 60s. Current status: $STATUS"
+    exit 1
+fi
 
-echo ""
-echo "All containers up!"
-docker compose ps
+echo "All containers are up!"
