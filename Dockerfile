@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     chromium \
     chromium-driver \
     && rm -rf /var/lib/apt/lists/*
-
+    
 ENV CHROME_BIN=/usr/bin/chromium
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
@@ -21,7 +21,7 @@ RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # 4. Copy the CONTENTS of your local 'app' folder into the Workdir
 # This is the key change!
-COPY ./app /app
+COPY . /app
 
 # 5. Fix permissions
 RUN adduser --disabled-password --gecos "" appuser && \
