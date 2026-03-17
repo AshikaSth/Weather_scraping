@@ -1,17 +1,8 @@
 #!/bin/sh
 cd "$(dirname "$0")/.."
+# Use docker compose service name instead of hardcoded container names
+# Makes the script portable and works even if project name or container suffix changes
+SERVICE=${1:-web_dashboard}  # default matches your docker-compose service
 
-# Usage: docker/bash          → opens shell in app
-#        docker/bash worker   → opens shell in celery_worker
-SERVICE=${1:-app}
-
-case "$SERVICE" in
-  worker) CONTAINER="weather_scraping-celery_worker-1" ;;
-  beat)   CONTAINER="weather_scraping-celery_beat-1" ;;
-  db)     CONTAINER="weather_scraping-db-1" ;;
-  redis)  CONTAINER="weather_scraping-redis-1" ;;
-  *)      CONTAINER="weather_scraping-app-1" ;;
-esac
-
-echo "Opening shell in $CONTAINER..."
-docker exec -it $CONTAINER /bin/bash
+echo "Opening shell in $SERVICE..."
+docker compose exec "$SERVICE" /bin/bash
