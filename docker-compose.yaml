@@ -51,6 +51,28 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  backup:
+    image: mysql:8
+    depends_on:
+      - db
+    volumes:
+      - ./backup:/backup
+    entrypoint: >
+      sh -c "
+      while true; do
+        DATE=$$(date +%F_%H-%M-%S);
+        echo 'Running backup for database: $$DATE';
+        mysqldump -h db -u $$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DB > /backup/backup_$$DATE.sql;
+        find /backup -type f -mtime +7 -delete;
+        sleep 3600;
+      done
+      "
+    environment:
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DB: ${MYSQL_DB}
+
   redis:
     image: redis:alpine
     restart: always
