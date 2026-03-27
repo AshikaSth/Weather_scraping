@@ -28,7 +28,7 @@ services:
 
   web_dashboard:
     <<: *shared
-    command: python3 main.py
+    command: python3 app/main.py
     ports:
       - "2222:5000"
     volumes:
