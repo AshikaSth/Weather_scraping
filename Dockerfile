@@ -21,7 +21,7 @@ RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # 4. Copy the CONTENTS of your local 'app' folder into the Workdir
 # This is the key change!
-COPY . /app
+COPY . .
 
 # 5. Fix permissions
 RUN adduser --disabled-password --gecos "" appuser && \
@@ -29,4 +29,4 @@ RUN adduser --disabled-password --gecos "" appuser && \
 USER appuser
 
 # 6. Run the script as a module
-CMD ["python3", "main.py"]
+CMD ["python3", "-m", "app.main"]
