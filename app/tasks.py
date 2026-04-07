@@ -15,15 +15,15 @@ celery_app.conf.beat_schedule = {
 
 @celery_app.task(bind=True)
 def scrape_weather(self):
-    from create import scrape_accuweather
-    from database import save_to_db
+    from app.scraper.accuweather import scrape_accuweather
     task_id = self.request.id
     print(f"Starting weather scrape task {task_id}...")
     data = scrape_accuweather()
     if data:
         data['task_id'] = task_id
         print("Scraped data:", data)
-        save_to_db(data)
+        with flask_app.app_context():
+            save_to_db(data)
     else:
         print("Failed to scrape weather data.")
 
