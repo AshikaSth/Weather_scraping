@@ -2,5 +2,5 @@
 cd "$(dirname "$0")/.."
 
 echo "Triggering scrape_weather task..."
-docker compose exec celery_worker celery -A tasks call tasks.scrape_weather
+docker compose exec celery_worker celery -A app.tasks call app.tasks.scrape_weather
 echo "Check logs with: ./docker/logs celery_worker"

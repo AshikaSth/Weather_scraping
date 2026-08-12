@@ -1,15 +1,21 @@
 import os
 from celery import Celery
 from celery.schedules import crontab
+from app import create_app, db
+from app.database import save_to_db
 
-celery_app= Celery('weather',
-                    broker = os.getenv('REDIS_URL', 'redis://redis:6379/0'),
-                    backend = os.getenv('REDIS_URL', 'redis://redis:6379/0'))
+flask_app = create_app()
+
+celery_app = Celery(
+    'weather',
+    broker=os.getenv('REDIS_URL', 'redis://redis:6379/0'),
+    backend=os.getenv('REDIS_URL', 'redis://redis:6379/0')
+)
 
 celery_app.conf.beat_schedule = {
-    'scrape-every-hour': {
-        'task': 'tasks.scrape_weather',
-        'schedule': crontab(minute=0, hour='*')
+    'scrape-every-15-minutes': {
+        'task': 'app.tasks.scrape_weather',
+        'schedule': crontab(minute="*/15")
     }
 }
 
@@ -26,7 +32,6 @@ def scrape_weather(self):
             save_to_db(data)
     else:
         print("Failed to scrape weather data.")
-
 # @celery_app.task
 # def run_analysis():
 #     # your analysis logic here

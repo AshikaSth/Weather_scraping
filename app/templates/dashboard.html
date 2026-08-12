@@ -6,6 +6,7 @@
 </head>
 <body class="bg-light">
     <div class="container mt-5">
+        <a href="{{ url_for('analysis') }}">View Analysis</a>
         <h2 class="mb-4">Weather History: Kathmandu</h2>
         <table class="table table-striped table-hover shadow-sm bg-white">
             <thead class="table-dark">
@@ -23,6 +24,7 @@
                     <th>Cloud Cover</th>
                     <th>Cloud Ceiling</th>
                     <th>Precipitation</th>
+                    <th>Rain</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,6 +43,8 @@
                     <td>{{ record.cloud_cover }}%</td>
                     <td>{{ record.cloud_ceiling }} m</td>
                     <td>{{ record.precipitation }} mm</td>
+                    <td>{{ record.rain }} mm</td>
+
                 </tr>
                 {% endfor %}
             </tbody>

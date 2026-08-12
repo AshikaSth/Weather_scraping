@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analysis — Air Quality · Kathmandu</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 30px 20px;
+        color: #2c3e50;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .header {
+        margin-bottom: 32px;
+      }
+
+      .header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #1a3a5c;
+      }
+
+      .header p {
+        font-size: 14px;
+        color: #7f8c8d;
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 
+                    0 10px 20px rgba(0, 0, 0, 0.05);
+        padding: 28px;
+        margin-bottom: 24px;
+      }
+
+      .card h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #1a3a5c;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      /* Chart container */
+      .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 16px;
+      }
+
+      canvas {
+        max-height: 400px;
+      }
+
+      /* Loading state */
+      .loading {
+        text-align: center;
+        padding: 40px 20px;
+        color: #7f8c8d;
+      }
+
+      .loading::after {
+        content: "";
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-left: 10px;
+        border: 3px solid #ecf0f1;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Statistics row */
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid #ecf0f1;
+      }
+
+      .stat-box {
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #4a90d9;
+      }
+
+      .stat-box.worst {
+        border-left-color: #ff6b6b;
+      }
+
+      .stat-box.best {
+        border-left-color: #2ecc71;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #7f8c8d;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 4px;
+      }
+
+      .stat-date {
+        font-size: 12px;
+        color: #95a5a6;
+      }
+
+      /* Insight section */
+      .insight {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 24px;
+        border-radius: 10px;
+        margin-top: 0;
+      }
+
+      .insight h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .insight p {
+        font-size: 14px;
+        line-height: 1.6;
+        opacity: 0.95;
+      }
+
+      /* Legend styling */
+      .legend-info {
+        display: flex;
+        gap: 24px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #ecf0f1;
+        font-size: 13px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .legend-color {
+        width: 16px;
+        height: 2px;
+        border-radius: 1px;
+      }
+
+      .legend-color.raw {
+        background: #4a90d9;
+      }
+
+      .legend-color.rolling {
+        background: #1a3a5c;
+      }
+
+      .legend-color.danger {
+        background: #ff6b6b;
+      }
+
+      /* Error state */
+      .error {
+        background: #fee;
+        color: #c33;
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 4px solid #ff6b6b;
+      }
+
+      /* Responsive */
+      @media (max-width: 600px) {
+        .container {
+          padding: 0 16px;
+        }
+
+        .card {
+          padding: 20px;
+        }
+
+        .header h1 {
+          font-size: 24px;
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+        }
+
+        .chart-container {
+          height: 300px;
+        }
+
+        .legend-info {
+          flex-direction: column;
+          gap: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>📊 Kathmandu Visibility Analysis</h1>
+        <p>Air quality trends based on visibility data with rolling averages</p>
+      </div>
+
+      <!-- Chart Card -->
+      <div class="card">
+        <h2>🌫️ Visibility Over Time</h2>
+        <div class="chart-container" id="chartWrapper">
+          <div class="loading">Loading chart data</div>
+        </div>
+
+        <div class="legend-info">
+          <div class="legend-item">
+            <div class="legend-color raw"></div>
+            <span>Raw visibility</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color rolling"></div>
+            <span>6-hour rolling average</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color danger"></div>
+            <span>Poor air quality zone (&lt; 5 km)</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+          <div class="stat-box worst">
+            <div class="stat-label">❌ Worst Visibility</div>
+            <div class="stat-value" id="worstValue">-</div>
+            <div class="stat-date" id="worstDate">-</div>
+          </div>
+          <div class="stat-box best">
+            <div class="stat-label">✅ Best Visibility</div>
+            <div class="stat-value" id="bestValue">-</div>
+            <div class="stat-date" id="bestDate">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insight Card -->
+      <div class="card insight">
+        <h3>🤖 AI Insight</h3>
+        <p id="insightText">Loading insight...</p>
+      </div>
+    </div>
+
+    <script>
+      // Fetch chart data from API
+      fetch("/api/chart-data")
+        .then(response => {
+          if (!response.ok) throw new Error("Failed to load chart data");
+          return response.json();
+        })
+        .then(chartDataRaw => initChart(chartDataRaw))
+        .catch(error => {
+          console.error("Error:", error);
+          document.getElementById("chartWrapper").innerHTML =
+            '<div class="error">⚠️ Error loading chart. Make sure the server is running.</div>';
+        });
+
+      function initChart(chartDataRaw) {
+        // Remove loading state and create canvas
+        const wrapper = document.getElementById("chartWrapper");
+        wrapper.innerHTML = '<canvas id="visibilityChart"></canvas>';
+        
+        const ctx = document.getElementById("visibilityChart").getContext("2d");
+
+        // Create plugin to draw danger zone
+        const dangerZonePlugin = {
+          id: "dangerZone",
+          afterDatasetsDraw(chart) {
+            const ctx = chart.ctx;
+            const yAxis = chart.scales.y;
+            const xAxis = chart.scales.x;
+            const threshold = chartDataRaw.poorVisibilityThreshold;
+
+            // Calculate pixel position of threshold
+            const yPixel = yAxis.getPixelForValue(threshold);
+
+            // Draw danger zone background
+            ctx.fillStyle = "rgba(255, 107, 107, 0.08)";
+            ctx.fillRect(
+              xAxis.left,
+              yPixel,
+              xAxis.width,
+              yAxis.bottom - yPixel
+            );
+
+            // Draw threshold line
+            ctx.strokeStyle = "#FF6B6B";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(xAxis.left, yPixel);
+            ctx.lineTo(xAxis.right, yPixel);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        };
+
+        const chart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: chartDataRaw.labels,
+            datasets: chartDataRaw.datasets
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              mode: "index",
+              intersect: false
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+                labels: {
+                  usePointStyle: true,
+                  padding: 15,
+                  font: { size: 13, weight: "500" },
+                  color: "#2c3e50",
+                  boxWidth: 6
+                }
+              },
+              tooltip: {
+                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                padding: 12,
+                titleFont: { size: 13, weight: "600" },
+                bodyFont: { size: 12 },
+                borderColor: "#fff",
+                borderWidth: 1,
+                displayColors: true,
+                callbacks: {
+                  label: function (context) {
+                    let label = context.dataset.label || "";
+                    if (label) {
+                      label += ": ";
+                    }
+                    if (context.parsed.y !== null) {
+                      label += context.parsed.y.toFixed(1) + " km";
+                    }
+                    return label;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  font: { size: 11 },
+                  color: "#7f8c8d",
+                  maxRotation: 0,
+                  autoSkip: true,
+                  maxTicksLimit: 8
+                }
+              },
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Visibility (km)",
+                  font: { size: 12, weight: "600" },
+                  color: "#2c3e50"
+                },
+                ticks: {
+                  font: { size: 11 },
+                  color: "#7f8c8d",
+                  callback: function (value) {
+                    return value + " km";
+                  }
+                },
+                grid: {
+                  color: "rgba(0, 0, 0, 0.05)",
+                  drawBorder: false
+                }
+              }
+            }
+          },
+          plugins: [dangerZonePlugin]
+        });
+
+        // Update statistics
+        document.getElementById("worstValue").textContent =
+          chartDataRaw.worstPoint.value + " km";
+        document.getElementById("worstDate").textContent =
+          chartDataRaw.worstPoint.date;
+
+        document.getElementById("bestValue").textContent =
+          chartDataRaw.bestPoint.value + " km";
+        document.getElementById("bestDate").textContent =
+          chartDataRaw.bestPoint.date;
+      }
+
+      // Fetch and display insight (if available)
+      fetch("/api/insight")
+        .then(r => r.json())
+        .then(data => {
+          if (data.insight) {
+            document.getElementById("insightText").textContent = data.insight;
+          }
+        })
+        .catch(err => console.log("Insight not available"));
+    </script>
+  </body>
+</html>
