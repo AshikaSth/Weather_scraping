@@ -1,4 +1,3 @@
-
 x-shared: &shared
   image: weather_app_base:latest
   build: .
@@ -6,8 +5,8 @@ x-shared: &shared
   env_file:
     - .env
   environment:
-    - PYTHONPATH=/app 
-    - TZ=Asia/Kathmandu 
+    PYTHONPATH: /app
+    TZ: Asia/Kathmandu
   depends_on:
     db:
       condition: service_healthy
@@ -15,11 +14,13 @@ x-shared: &shared
       condition: service_started
 
 services:
+
   celery_worker:
     <<: *shared
     command: celery -A app.tasks:celery_app worker --loglevel=info
     volumes:
       - .:/app
+
   celery_beat:
     <<: *shared
     command: celery -A app.tasks:celery_app beat --loglevel=info
@@ -35,52 +36,67 @@ services:
       - .:/app
 
   db:
-    image: mysql:8.0
+    image: postgres:16
     restart: always
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgresql_data:/var/lib/postgresql/data
+
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
     ports:
-      - "3330:3306"
+      - "3330:5432"
+
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
 
   backup:
-    image: mysql:8
+    image: postgres:16
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
     volumes:
       - ./backup:/backup
+
     entrypoint: >
       sh -c "
       while true; do
         DATE=$$(date +%F_%H-%M-%S);
         echo 'Running backup for database: $$DATE';
-        mysqldump -h db -u $$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DB > /backup/backup_$$DATE.sql;
+
+        PGPASSWORD=$$POSTGRES_PASSWORD pg_dump
+        -h db
+        -U $$POSTGRES_USER
+        $$POSTGRES_DB
+        > /backup/backup_$$DATE.sql;
+
         find /backup -type f -mtime +7 -delete;
+
         sleep 3600;
       done
       "
+
     environment:
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DB: ${MYSQL_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
 
   redis:
     image: redis:alpine
     restart: always
-  
+
 volumes:
-  mysql_data:
+  postgresql_data:
 
 networks:
   app_network:
-
-

@@ -1,12 +1,18 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
-# Distribution / packaging
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Packaging
 .Python
 build/
 develop-eggs/
@@ -26,51 +32,42 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Unit test / coverage reports
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Testing / coverage
 htmlcov/
 .tox/
 .nox/
 .coverage
 .coverage.*
-.cache
+.cache/
+.pytest_cache/
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
 .hypothesis/
-.pytest_cache/
 cover/
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-.git
-
 
 # Celery
 celerybeat-schedule
 celerybeat-schedule.db
 celerybeat.pid
 
-# Docker
-.dockerignore
-
 # Analysis output
 app/analysis/output/
 *.png
 *.csv
 
+# Logs
+*.log
+backup/*.sql
+
 # IDE
 .vscode/
 .idea/
 
-# Logs
-*.logbackup/*.sql
+# OS
+.DS_Store

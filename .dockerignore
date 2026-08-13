@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+
+# Local data / backups
+backup/
+*.sql
+*.log
+
+# Large/temp folders
+node_modules/
+bin/
+obj/
+
+# Test / cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Analysis output
+app/analysis/output/
