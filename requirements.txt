@@ -28,10 +28,9 @@ websocket-client==1.9.0
 wsproto==1.3.2
 zipp==3.23.0
 
-mysql-connector-python==8.0.30
 sqlalchemy==2.0.46
 alembic==1.7.7
-pymysql==1.0.2
+psycopg[binary]
 
 pandas==2.2.0
 scipy
@@ -46,3 +45,4 @@ Flask-Migrate>=4.0
 
 anthropic
 cryptography==46.0.5
+gunicorn==23.0.0

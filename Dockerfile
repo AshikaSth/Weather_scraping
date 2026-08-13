@@ -28,5 +28,8 @@ RUN adduser --disabled-password --gecos "" appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# 6. Run the script as a module
-CMD ["python3", "-m", "app.main"]
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Production server
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "app.main:app"]
