@@ -1,7 +1,7 @@
 # Git
 .git
 .gitignore
-
+.github
 # IDE
 .vscode
 .idea
@@ -36,3 +36,4 @@ htmlcov/
 
 # Analysis output
 app/analysis/output/
+celerybeat-schedule*

@@ -71,3 +71,5 @@ backup/*.sql
 
 # OS
 .DS_Store
+
+celerybeat-schedule*

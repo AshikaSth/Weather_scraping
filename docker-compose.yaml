@@ -29,7 +29,7 @@ services:
 
   web_dashboard:
     <<: *shared
-    command: python3 app/main.py
+    command: gunicorn --bind 0.0.0.0:5000 --workers 2 app.main:app    
     ports:
       - "2222:5000"
     volumes:
